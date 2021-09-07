@@ -1,0 +1,19 @@
+{
+  "name": "esm-loader-svelte",
+  "version": "0.0.1",
+  "description": "Node ESModules Loader for Svelte",
+  "author": "Brev Patterson <me@brev.name>",
+  "license": "MIT",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "uvu . \"test.js$\""
+  },
+  "dependencies": {
+    "create-esm-loader": "^0.0.1-alpha.0",
+    "svelte": "^3.42.4"
+  },
+  "devDependencies": {
+    "uvu": "^0.5.1"
+  }
+}
