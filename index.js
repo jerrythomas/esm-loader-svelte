@@ -3,24 +3,28 @@ import createLoader from 'create-esm-loader'
 import { parse } from 'path'
 import { URL } from 'url'
 
-const EXT = '.svelte'
+const svelteExt = '.svelte'
 
 const svelteLoader = {
   resolve: (specifier, opts) => {
-    if (specifier.endsWith(EXT)) {
+    if (specifier.endsWith(svelteExt)) {
       const { parentURL } = opts
       const url = new URL(specifier, parentURL).href
-      return { url }  
+      return { url }
     }
   },
+
   format: (url, opts) => {
-    if (url.endsWith(EXT)) {
+    if (url.endsWith(svelteExt)) {
       return { format: 'module' }
     }
   },
+
   transform: (source, opts) => {
-    if (opts.url.endsWith(EXT)) {
-      const { name } = parse(opts.url)
+    if (opts.url.endsWith(svelteExt)) {
+      let { name } = parse(opts.url)
+      name = name.replace(/[^A-Za-z0-9]/g, '')
+
       const { js, warnings } = compile(source.toString(), {
         name: name[0].toUpperCase() + name.substring(1),
         filename: opts.url,
