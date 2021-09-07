@@ -7,7 +7,7 @@ full ES6/ESM/import glory.
 
 This allows you to `import` any `.svelte` components from `.js` files if you
 use `type: 'module'` in `package.json`. Or, from any `.mjs` files, otherwise.
-`.svelte` components will be run through `svelte/compile`. It does not do any
+Svelte components will be run through `svelte/compile`. It does not do any
 pre-processing, etc.
 
 This will also allow `import` for any `.css` or `.postcss` stylesheet files.
