@@ -47,6 +47,12 @@ NODE_OPTIONS="--experimental-loader esm-loader-svelte" npm run test
   flag `--experimental-json-modules`.
 * An esm DOM can be loaded into tests by importing `global-jsdom/register`
   from [global-jsdom][jsdom].
+* You must import full filenames with extensions. Leaving off the 
+  `.js` extension doesn't work.
+* Import aliases (`import draw from '$utils/draw.js'`) don't work well.
+  You **can** write an ESM loader hook to handle that, even pulling them
+  from `svelte.config.js`, but Node only really hanldes a single loader hook
+  at a time, so it's not too useful yet.
 * After Node ESM loader hooks are [able to chain well][chain], this module
   should be split between Svelte and Styles.
 
