@@ -1,6 +1,6 @@
 {
   "name": "esm-loader-svelte",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Node ESModules Loader for Svelte",
   "author": "Brev Patterson <me@brev.name>",
   "license": "MIT",

@@ -24,13 +24,13 @@ const svelteLoader = {
     }
   },
 
-  transform: (source, opts) => {
-    // .css | .postcss => no-op
-    if (opts.url.match(styleRegex)) {
+  fetch: (url, opts) => {
+    if (url.match(styleRegex)) {
       return { source: '' }
     }
+  },
 
-    // .svelte => compile
+  transform: (source, opts) => {
     if (opts.url.match(svelteRegex)) {
       let { name } = parse(opts.url)
       name = name.replace(/[^A-Za-z0-9]/g, '')
