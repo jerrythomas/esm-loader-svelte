@@ -22,14 +22,15 @@ const assetExts = [
     )
     .map((ext) => `\\.${ext}`)
 ]
-const svelteRegex = new RegExp(`${svelteExt}$`)
-const assetRegex = new RegExp(`(${assetExts.join('|')})$`)
-const allRegex = new RegExp(`(${[svelteExt, ...assetExts].join('|')})$`)
+const svelteExtRegex = new RegExp(`${svelteExt}$`)
+const svelteKitPathRegex = /\$app\//
+const assetExtsRegex = new RegExp(`(${assetExts.join('|')})$`)
+const allExtRegex = new RegExp(`(${[svelteExt, ...assetExts].join('|')})$`)
 
 const svelteLoader = {
   resolve: (specifier, opts) => {
-    // turn all our exts into valid paths
-    if (specifier.match(allRegex)) {
+    // turn all our exts+paths into valid paths
+    if (specifier.match(allExtRegex) || specifier.match(svelteKitPathRegex)) {
       const { parentURL } = opts
       const url = new URL(specifier, parentURL).href
       return { url }
@@ -37,22 +38,34 @@ const svelteLoader = {
   },
 
   format: (url, opts) => {
-    // turn all our exts into modules
-    if (url.match(allRegex)) {
+    // turn all our exts+paths into modules
+    if (url.match(allExtRegex) || url.match(svelteKitPathRegex)) {
       return { format: 'module' }
     }
   },
 
   fetch: (url, opts) => {
+    // sveltekit paths built-in aliases mocks
+    if (url.match(svelteKitPathRegex)) {
+      if (url.match(/\/navigation/)) {
+        return {
+          source: Buffer.from(`
+            const goto = () => {}
+            export { goto }
+          `.trim(), 'utf8')
+        }
+      }
+    }
+
     // turn assets exts into valid empty sources instead of failing
-    if (url.match(assetRegex)) {
+    if (url.match(assetExtsRegex)) {
       return { source: '' }
     }
   },
 
   transform: async (source, opts) => {
     // turn svelte templates into valid preprocessed and compiled js code
-    if (opts.url.match(svelteRegex)) {
+    if (opts.url.match(svelteExtRegex)) {
       let { name } = parse(opts.url)
       name = name.replace(/[^A-Za-z0-9]/g, '')
 

@@ -1,6 +1,9 @@
 # esm-loader-svelte
 
-Node.js esmodules [loader][loaders] for [Svelte][svelte]. **Experimental!**
+**Experimental!**
+
+Node.js esmodules [loader][loaders] for [Svelte][svelte], and optionally some
+[SvelteKit][sveltekit].
 
 ## About
 
@@ -17,6 +20,8 @@ With this, you can:
   - JS code will be compiled with `svelte/compile`.
   - If a custom config file exists, component will be pre-processed with
     `svelte/preprocess` and [svelte-preprocess][preprocess].
+  - SvelteKit import alias `import { goto } from $app/navigation`,
+    will load successfully as a no-op.
 - No-op import `.css` files without failure (helpful for testing).
   - Other asset file extensions from the preprocessor config (e.g. `.postcss`)
     will also be no-op imported without failure.

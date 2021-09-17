@@ -6,6 +6,7 @@ const test = suite('esm-loader-svelte')
 const files = {
   svelte: 'file:///src/components/Counter.svelte',
   style: 'file:///static/styles/layout.css',
+  svelteKitAlias: 'file:///$app/navigation',
 }
 
 test('resolve', async () => {
@@ -18,8 +19,13 @@ test('getFormat', async () => {
   assert.is(result.format, 'module')
 })
 
+test('getSource on svelte-kit $app/navigation alias', async () => {
+  const result = await getSource(files.svelteKitAlias)
+  const source = result.source.toString()
+  assert.match(source, 'export { goto }')
+})
+
 test('getSource on .css', async () => {
-  const source = 'body { color: blue }'
   const result = await getSource(files.style)
   assert.match(result.source, '')
 })
