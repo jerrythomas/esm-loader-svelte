@@ -55,8 +55,8 @@ Here we have a simple Svelte component:
 </style>
 ```
 
-Node.js will ordinarily fail on the following `import`s, as it doesn't know
-how to handle `.svelte` and `.css` files:
+Node.js will ordinarily fail on the following `import`, as it doesn't know
+how to handle `.svelte` (and the included `.css`) files:
 
 ```js
 // Component.test.js -- Test a Svelte component.
