@@ -1,17 +1,27 @@
 import * as assert from 'uvu/assert'
 import { resolve, getFormat, getSource, transformSource } from './index.js'
 import { suite } from 'uvu'
+import { cwd } from 'process'
+import { copyFileSync, unlinkSync } from 'fs'
 
 const test = suite('esm-loader-svelte')
 const files = {
   svelte: 'file:///src/components/Counter.svelte',
   style: 'file:///static/styles/layout.css',
   svelteKitAlias: 'file:///$app/navigation',
+  svelteKitLibAlias: 'file:///$lib/count.js',
 }
 
 test('resolve', async () => {
   const result = await resolve(files.svelte)
   assert.match(result.url, new RegExp(files.svelte))
+})
+
+test('resolve svelte/kit $alias', async () => {
+  copyFileSync('fixture/svelte.config.js', './svelte.config.js')
+  const result = await resolve(files.svelteKitLibAlias)
+  assert.match(result.url, `file://${cwd()}/file:/src/lib/count.js`)
+  unlinkSync('./svelte.config.js')
 })
 
 test('getFormat', async () => {

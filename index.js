@@ -3,32 +3,58 @@ import createLoader from 'create-esm-loader'
 import { cwd } from 'process'
 import { parse } from 'path'
 import sveltePreprocess from 'svelte-preprocess'
-import { URL } from 'url'
+import { URL, pathToFileURL } from 'url'
 
 let sveltePreprocessConfig
 try {
   sveltePreprocessConfig = (
     await import(`${cwd()}/svelte-preprocess.config.js`)
   ).default
-} catch(error) {}
+} catch (error) {}
+
+let svelteAliasConfig = {}
+try {
+  svelteAliasConfig = (await import(`${cwd()}/svelte.config.js`)).default
+
+  svelteAliasConfig = svelteAliasConfig.vite?.resolve?.alias || {}
+  svelteAliasConfig['$lib'] = `./src/lib` // add default alias for sveltekit lib
+} catch (error) {}
 
 const svelteExt = '\\.svelte'
 const assetExts = [
   '\\.css',
   ...Object.keys(sveltePreprocessConfig || {})
-    .filter((ext) =>
-      // https://github.com/sveltejs/svelte-preprocess/blob/main/src/autoProcess.ts#L50
-      !['aliases', 'markupTagName', 'preserve', 'sourceMap'].includes(ext)
+    .filter(
+      (ext) =>
+        // https://github.com/sveltejs/svelte-preprocess/blob/main/src/autoProcess.ts#L50
+        !['aliases', 'markupTagName', 'preserve', 'sourceMap'].includes(ext)
     )
-    .map((ext) => `\\.${ext}`)
+    .map((ext) => `\\.${ext}`),
 ]
 const svelteExtRegex = new RegExp(`${svelteExt}$`)
 const svelteKitPathRegex = /\$app\//
 const assetExtsRegex = new RegExp(`(${assetExts.join('|')})$`)
 const allExtRegex = new RegExp(`(${[svelteExt, ...assetExts].join('|')})$`)
+const aliasRegex = new RegExp('(\\$\\w*)/')
 
 const svelteLoader = {
   resolve: (specifier, opts) => {
+    // replace path aliases with actual paths
+    if (specifier.match(aliasRegex)) {
+      const alias = specifier.match(aliasRegex)[1]
+      let name = specifier
+
+      if (alias in svelteAliasConfig) {
+        name = specifier.replace(alias, svelteAliasConfig[alias])
+      } else if (alias !== '$app') {
+        console.warn(
+          `svelte.config.js does not contain configuration for alias "${alias}"`
+        )
+      }
+      let url = pathToFileURL(name).href
+      return { url }
+    }
+
     // turn all our exts+paths into valid paths
     if (specifier.match(allExtRegex) || specifier.match(svelteKitPathRegex)) {
       const { parentURL } = opts
@@ -49,10 +75,13 @@ const svelteLoader = {
     if (url.match(svelteKitPathRegex)) {
       if (url.match(/\/navigation/)) {
         return {
-          source: Buffer.from(`
+          source: Buffer.from(
+            `
             const goto = () => {}
             export { goto }
-          `.trim(), 'utf8')
+          `.trim(),
+            'utf8'
+          ),
         }
       }
     }
@@ -89,7 +118,7 @@ const svelteLoader = {
 
       return { source: js.code }
     }
-  }
+  },
 }
 
 const { resolve, getFormat, getSource, transformSource } =
