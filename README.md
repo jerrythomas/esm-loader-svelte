@@ -148,14 +148,9 @@ full native ES6/ESM mode.
   flag `--experimental-json-modules`.
 - An esm DOM can be loaded into tests by importing `global-jsdom/register`
   from [global-jsdom][jsdom].
-- You must import full filenames with extensions. Leaving off the
-  `.js` extension doesn't work.
-- Import aliases (`from '$utils/draw.js'`) don't work well.
-  You **can** write an ESM loader hook to handle that ([example][alias]),
-  even pulling them from SvelteKit `svelte.config.js`, but Node only really
-  handles a single loader hook at a time, so it's not too useful currently.
-- Node ESM loader hooks are not [able to chain well][chain] yet, so beware
-  trying to use multiple loaders together.
+- Leaving off the `.js` extension works.
+- You can import module folders, assuming that index.js exists in the folder.
+- Import aliases (`from '$utils/draw.js'`) works. This relies on svelte.config.js.
 
 [alias]: https://www.npmjs.com/package/create-esm-loader#2-create-directory-aliases
 [chain]: https://www.npmjs.com/package/esm-loader-chaining-polyfill
