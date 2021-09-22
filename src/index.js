@@ -4,20 +4,13 @@ import { cwd } from 'process'
 import { parse } from 'path'
 import sveltePreprocess from 'svelte-preprocess'
 import { URL, pathToFileURL } from 'url'
+import { getUnaliasedFilePath } from './unalias.js'
 
 let sveltePreprocessConfig
 try {
   sveltePreprocessConfig = (
     await import(`${cwd()}/svelte-preprocess.config.js`)
   ).default
-} catch (error) {}
-
-let svelteAliasConfig = {}
-try {
-  svelteAliasConfig = (await import(`${cwd()}/svelte.config.js`)).default
-
-  svelteAliasConfig = svelteAliasConfig.vite?.resolve?.alias || {}
-  svelteAliasConfig['$lib'] = `./src/lib` // add default alias for sveltekit lib
 } catch (error) {}
 
 const svelteExt = '\\.svelte'
@@ -35,31 +28,21 @@ const svelteExtRegex = new RegExp(`${svelteExt}$`)
 const svelteKitPathRegex = /\$app\//
 const assetExtsRegex = new RegExp(`(${assetExts.join('|')})$`)
 const allExtRegex = new RegExp(`(${[svelteExt, ...assetExts].join('|')})$`)
-const aliasRegex = new RegExp('(\\$\\w*)/')
 
 const svelteLoader = {
   resolve: (specifier, opts) => {
-    // replace path aliases with actual paths
-    if (specifier.match(aliasRegex)) {
-      const alias = specifier.match(aliasRegex)[1]
-      let name = specifier
-
-      if (alias in svelteAliasConfig) {
-        name = specifier.replace(alias, svelteAliasConfig[alias])
-      } else if (alias !== '$app') {
-        console.warn(
-          `svelte.config.js does not contain configuration for alias "${alias}"`
-        )
-      }
-      let url = pathToFileURL(name).href
-      return { url }
-    }
+    const unaliasedFile = getUnaliasedFilePath(specifier, opts)
 
     // turn all our exts+paths into valid paths
-    if (specifier.match(allExtRegex) || specifier.match(svelteKitPathRegex)) {
+    if (
+      unaliasedFile.match(allExtRegex) ||
+      unaliasedFile.match(svelteKitPathRegex)
+    ) {
       const { parentURL } = opts
-      const url = new URL(specifier, parentURL).href
+      const url = new URL(unaliasedFile, parentURL).href
       return { url }
+    } else if (unaliasedFile !== specifier) {
+      return { url: pathToFileURL(unaliasedFile).href }
     }
   },
 
